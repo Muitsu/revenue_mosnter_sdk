@@ -22,3 +22,5 @@ enum RMPaymentMethod {
   final String code;
   const RMPaymentMethod({required this.code});
 }
+
+enum RMPaymentResult { success, failed, cancelled }

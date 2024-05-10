@@ -20,8 +20,15 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         children: [
           ElevatedButton(
-              onPressed: () {
-                RmSdk().launchSDK(method: RMPaymentMethod.fpx, total: 120);
+              onPressed: () async {
+                await RmSdk().launchSDK(
+                  method: RMPaymentMethod.grabpay,
+                  total: 120,
+                  onSuccess: () {},
+                  onFailed: () {},
+                  onCancelled: () {},
+                  onTimeout: () {},
+                );
               },
               child: const Text("Test Run SDK"))
         ],
