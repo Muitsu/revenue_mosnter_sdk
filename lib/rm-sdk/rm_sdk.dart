@@ -46,6 +46,23 @@ class RmSdk {
       dev.log("SDK not initialize", name: "[RM-SDK]");
       return;
     }
+
+    platform.setMethodCallHandler((call) async {
+      final String jsonString = call.arguments;
+      final state = RMPaymentResult.values.byName(call.method);
+      if (state == RMPaymentResult.success && onSuccess != null) {
+        dev.log("${state.name}: ${jsonString.toString()}");
+        onSuccess();
+      } else if (state == RMPaymentResult.failed && onFailed != null) {
+        dev.log("${state.name}: ${jsonString.toString()}");
+        onFailed();
+      } else {
+        dev.log(jsonString);
+        if (onCancelled == null) return;
+        onCancelled();
+      }
+    });
+
     String? checkoutID = await _getCheckoutId(
       baseUrl: _baseUrl!,
       total: total,
@@ -66,22 +83,6 @@ class RmSdk {
     };
 
     await platform.invokeMethod('launchSDK', args);
-
-    platform.setMethodCallHandler((call) async {
-      final Map<dynamic, dynamic> args = call.arguments;
-      final state = RMPaymentResult.values.byName(call.method);
-      if (state == RMPaymentResult.success && onSuccess != null) {
-        dev.log("${state.name}: ${args.toString()}");
-        onSuccess();
-      } else if (state == RMPaymentResult.failed && onFailed != null) {
-        dev.log("${state.name}: ${args.toString()}");
-        onFailed();
-      } else {
-        if (onCancelled == null) return;
-        dev.log(state.name);
-        onCancelled();
-      }
-    });
   }
 
   static Future<String?> _getCheckoutId({

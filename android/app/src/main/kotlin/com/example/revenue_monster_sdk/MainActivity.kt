@@ -74,29 +74,30 @@ class MainActivity : FlutterActivity(), PaymentResult  {
     }
 
     override fun onPaymentSuccess(transaction: Transaction?) {
-        Log.d("SUCCESS", "onPaymentSuccess")
-        val toast = Toast.makeText(applicationContext, "Payment Success", Toast.LENGTH_SHORT)
         val args = transactionToJson(transaction);
         MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL).invokeMethod("success", args)
+        Log.d("SUCCESS", "onPaymentSuccess")
+        val toast = Toast.makeText(applicationContext, "Payment Success", Toast.LENGTH_SHORT)
         toast.show()
     }
 
     override fun onPaymentFailed(error: Error) {
-        Log.d("FAILED", error.message)
-        val toast = Toast.makeText(applicationContext, "Payment Failed", Toast.LENGTH_SHORT)
         val args =   errorToJson(error)
         MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL).invokeMethod("failed", args)
+        Log.d("FAILED", error.message)
+        val toast = Toast.makeText(applicationContext, "Payment Failed", Toast.LENGTH_SHORT)
         toast.show()
     }
 
     override fun onPaymentCancelled() {
+        val args =   cancelledToJson()
+        MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL).invokeMethod("cancelled", args)
         Log.d("CANCELLED", "onPaymentCancelled")
         val toast = Toast.makeText(applicationContext, "Payment Cancelled", Toast.LENGTH_SHORT)
-        MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL).invokeMethod("cancelled", "cancelled")
         toast.show()
     }
 
-    private fun transactionToJson(transaction: Transaction?): JSONObject {
+    private fun transactionToJson(transaction: Transaction?): String {
         val transactionJson = JSONObject()
         transactionJson.put("key", transaction?.key)
         transactionJson.put("id", transaction?.id)
@@ -123,12 +124,17 @@ class MainActivity : FlutterActivity(), PaymentResult  {
         transactionJson.put("payload", transaction?.payload)
         transactionJson.put("createdAt", transaction?.createdAt)
         transactionJson.put("updatedAt", transaction?.updatedAt)
-        return transactionJson
+        return transactionJson.toString()
     }
-    private fun errorToJson(err: Error): JSONObject {
+    private fun errorToJson(err: Error): String {
         val errJson = JSONObject()
         errJson.put("message", err.message)
-        return errJson
+        return errJson.toString()
+    }
+    private fun cancelledToJson(): String {
+        val msgJson = JSONObject()
+        msgJson.put("message", "cancelled")
+        return msgJson.toString()
     }
 }
 
