@@ -11,6 +11,7 @@ import com.revenuemonster.payment.model.Error
 import com.revenuemonster.payment.model.Transaction
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.IOException
 import org.json.JSONObject
@@ -32,7 +33,7 @@ class MainActivity : FlutterActivity(), PaymentResult  {
                 val outerActivity = this@MainActivity // Capture reference to the outer class
             try {
                 checkout = Checkout(outerActivity).instance.setEnv(envValue)
-                settingsPaymentMethod(method)
+                settingsPaymentMethod(method,call)
                 checkout.pay(method, checkoutID, outerActivity)
 //                result.success(envValue.name)
             }catch(e: IOException){
@@ -52,13 +53,20 @@ class MainActivity : FlutterActivity(), PaymentResult  {
     private fun getMethodByName(name: String): Method {
         return enumValues<Method>().find { it.name == name }?:Method.FPX_MY
     }
-    private fun settingsPaymentMethod(paymentMethod: Method) {
+    private fun settingsPaymentMethod(paymentMethod: Method, call: MethodCall) {
         if(paymentMethod==Method.GOBIZ_MY){
+            val cardName = call.argument<String>("name")!!
+            val cardNo = call.argument<String>("cardNo")!!
+            val cvc = call.argument<String>("cvcNo")!!
+            val month = call.argument<Int>("expMonth")!!
+            val year = call.argument<Int>("expYear")!!
+//            val countryCode = call.argument<String>("country_code")!!
+//            val saveCard = call.argument<Boolean>("save_card")!!
 //            if (selectCard.getSelectedItemPosition() === 0) {
 //                if (expDate.getText().toString().length() === 5) {
 //                    val expMonth: Int = expDate.getText().toString().substring(0, 2).toInt()
 //                    val expYear: Int = (20 + expDate.getText().toString().substring(3, 5)).toInt()
-//                    c = c.setCardInfo(cardName.getText().toString(), cardNo.getText().toString(), cvc.getText().toString(), expMonth, expYear, "MY", saveCard.isChecked())
+//                    checkout = checkout.setCardInfo(cardName.getText().toString(), cardNo.getText().toString(), cvc.getText().toString(), expMonth, expYear, "MY", saveCard)
 //                }
 //            } else {
 //                c = c.setToken(cardNo.getText().toString(), cvc.getText().toString())
