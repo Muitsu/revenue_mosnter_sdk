@@ -2,7 +2,6 @@ package com.example.revenue_monster_sdk
 
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.NonNull
 import com.revenuemonster.payment.Checkout
 import com.revenuemonster.payment.PaymentResult
 import com.revenuemonster.payment.constant.Env
@@ -21,7 +20,7 @@ class MainActivity : FlutterActivity(), PaymentResult  {
     private val CHANNEL = "revenue.monster/payment"
     private var checkout: Checkout = Checkout(this@MainActivity)
 
-    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+    override fun configureFlutterEngine( flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "launchSDK") {
@@ -55,24 +54,25 @@ class MainActivity : FlutterActivity(), PaymentResult  {
     }
     private fun settingsPaymentMethod(paymentMethod: Method, call: MethodCall) {
         if(paymentMethod==Method.GOBIZ_MY){
-            val cardName = call.argument<String>("name")!!
-            val cardNo = call.argument<String>("cardNo")!!
-            val cvc = call.argument<String>("cvcNo")!!
-            val month = call.argument<Int>("expMonth")!!
-            val year = call.argument<Int>("expYear")!!
-//            val countryCode = call.argument<String>("country_code")!!
-//            val saveCard = call.argument<Boolean>("save_card")!!
-//            if (selectCard.getSelectedItemPosition() === 0) {
-//                if (expDate.getText().toString().length() === 5) {
-//                    val expMonth: Int = expDate.getText().toString().substring(0, 2).toInt()
-//                    val expYear: Int = (20 + expDate.getText().toString().substring(3, 5)).toInt()
-//                    checkout = checkout.setCardInfo(cardName.getText().toString(), cardNo.getText().toString(), cvc.getText().toString(), expMonth, expYear, "MY", saveCard)
-//                }
-//            } else {
-//                c = c.setToken(cardNo.getText().toString(), cvc.getText().toString())
-//            }
+            val bankInfo = call.argument<Map<String, Any>>("bankInfo")!!
+            val cardName = bankInfo["name"] as String
+            val cardNo = bankInfo["cardNo"] as String
+            val cvc = bankInfo["cvcNo"] as String
+            val expMonth = bankInfo["expMonth"] as Int
+            val expYear = bankInfo["expYear"] as Int
+            val countryCode = bankInfo["countryCode"] as String
+            val saveCard = bankInfo["saveCard"] as Boolean
+            val isNewCard = bankInfo["isNewCard"] as Boolean
+
+            checkout = if(isNewCard){
+                checkout.setCardInfo(cardName, cardNo, cvc, expMonth, expYear, countryCode, saveCard)
+            }else{
+                checkout .setToken(cardNo, cvc)
+            }
+
         }else if(paymentMethod==Method.FPX_MY){
-            checkout = checkout.setBankCode("TEST");
+            val bankCode = call.argument<String>("bankCode")!!
+            checkout = checkout.setBankCode(bankCode)
         }
     }
 
@@ -82,7 +82,7 @@ class MainActivity : FlutterActivity(), PaymentResult  {
     }
 
     override fun onPaymentSuccess(transaction: Transaction?) {
-        val args = transactionToJson(transaction);
+        val args = transactionToJson(transaction)
         MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL).invokeMethod("success", args)
         Log.d("SUCCESS", "onPaymentSuccess")
         val toast = Toast.makeText(applicationContext, "Payment Success", Toast.LENGTH_SHORT)

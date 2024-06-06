@@ -41,6 +41,17 @@ class RmSdk {
       void Function()? onFailed,
       void Function()? onCancelled,
       void Function()? onTimeout,
+      //For FPX Online Banking
+      String? bankCode,
+      //For GoBiz
+      String? nameOnCard,
+      String? cardNo,
+      String? cvcNo,
+      int? expMonth,
+      int? expYear,
+      String countryCode = "MY",
+      bool saveCard = false,
+      bool isNewCard = true,
       Duration? timeout}) async {
     if (_environment == null || _baseUrl == null) {
       dev.log("SDK not initialize", name: "[RM-SDK]");
@@ -79,7 +90,18 @@ class RmSdk {
     var args = {
       "checkout_id": checkoutID,
       "environment": _environment!.code,
-      "payment_method": method.code
+      "payment_method": method.code,
+      "bankCode": bankCode,
+      "bankInfo": {
+        "name": nameOnCard,
+        "cardNo": cardNo,
+        "cvcNo": cvcNo,
+        "expMonth": expMonth,
+        "expYear": expYear,
+        "countryCode": countryCode,
+        "saveCard": countryCode,
+        "isNewCard": isNewCard,
+      }
     };
 
     await platform.invokeMethod('launchSDK', args);
